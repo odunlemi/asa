@@ -14,7 +14,7 @@ class AssemblyAIClient:
             "authorization": api_key,
             "content-type": "application/json",
         }
-        
+
     def upload(self, filepath: str) -> str:
         """Upload a local audio file and return the upload URL."""
         with open(filepath, "rb") as f:
@@ -29,4 +29,19 @@ class AssemblyAIClient:
             response.raise_for_status()
 
         return response.json()["upload_url"]
+    
+    def submit(self, upload_url: str) -> str:
+        """Submit a transcription job and return the job ID."""
+        with httpx.Client(timeout=30) as client:
+            response = client.post(
+                f"{self.BASE_URL}/transcript",
+                headers=self._headers,
+                json={
+                    "audio_url": upload_url,
+                    "language_code": "en",
+                },
+            )
+            response.raise_for_status()
+
+        return response.json()["id"]
     
