@@ -68,4 +68,10 @@ class AssemblyAIClient:
                     )
 
                 time.sleep(1)
-                
+    
+    def transcribe(self, filepath: str) -> str:
+        """Upload, submit, and poll in one call. Returns the English transcript."""
+        upload_url = self.upload(filepath)
+        job_id = self.submit(upload_url)
+        return self.poll(job_id)
+    
