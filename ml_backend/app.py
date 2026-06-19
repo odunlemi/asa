@@ -4,15 +4,21 @@ import tempfile
 from fastapi import FastAPI, HTTPException, UploadFile
 from pydantic import BaseModel
 
+from pipeline.tts import TtsPipeline
 from transcription.client import AssemblyAIClient
 from translation.model import TranslationModel
 
 app = FastAPI(title="Asa ML Backend")
 
 translation_model = TranslationModel()
+tts_pipeline = TtsPipeline()
 
 
 class TranslateRequest(BaseModel):
+    text: str
+
+
+class SynthesiseRequest(BaseModel):
     text: str
 
 
@@ -46,4 +52,10 @@ async def transcribe(audio: UploadFile) -> dict:
 def translate(body: TranslateRequest) -> dict:
     yoruba = translation_model.translate(body.text)
     return {"yoruba": yoruba}
+
+
+@app.post("/synthesise")
+def synthesise(body: SynthesiseRequest) -> dict:
+    audio_b64 = tts_pipeline.run(body.text)
+    return {"audio_b64": audio_b64}
 
