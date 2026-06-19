@@ -1,11 +1,19 @@
-import tempfile
 import os
+import tempfile
 
 from fastapi import FastAPI, HTTPException, UploadFile
+from pydantic import BaseModel
 
 from transcription.client import AssemblyAIClient
+from translation.model import TranslationModel
 
 app = FastAPI(title="Asa ML Backend")
+
+translation_model = TranslationModel()
+
+
+class TranslateRequest(BaseModel):
+    text: str
 
 
 @app.get("/")
@@ -16,7 +24,7 @@ def health() -> dict:
 @app.post("/transcribe")
 async def transcribe(audio: UploadFile) -> dict:
     audio_bytes = await audio.read()
-    # test file carried .m4a
+
     suffix = os.path.splitext(audio.filename or "audio.wav")[1] or ".wav"
 
     with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
@@ -32,3 +40,10 @@ async def transcribe(audio: UploadFile) -> dict:
         os.unlink(tmp_path)
 
     return {"text": text}
+
+
+@app.post("/translate")
+def translate(body: TranslateRequest) -> dict:
+    yoruba = translation_model.translate(body.text)
+    return {"yoruba": yoruba}
+
