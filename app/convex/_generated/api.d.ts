@@ -8,13 +8,21 @@
  * @module
  */
 
+import type * as actions_translate from "../actions/translate.js";
+import type * as mutations_saveTranslation from "../mutations/saveTranslation.js";
+import type * as queries_history from "../queries/history.js";
+
 import type {
   ApiFromModules,
   FilterApi,
   FunctionReference,
 } from "convex/server";
 
-declare const fullApi: ApiFromModules<{}>;
+declare const fullApi: ApiFromModules<{
+  "actions/translate": typeof actions_translate;
+  "mutations/saveTranslation": typeof mutations_saveTranslation;
+  "queries/history": typeof queries_history;
+}>;
 
 /**
  * A utility for referencing Convex functions in your app's public API.
