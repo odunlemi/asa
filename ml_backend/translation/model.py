@@ -25,6 +25,7 @@ class TranslationModel:
             **inputs,
             forced_bos_token_id=target_lang_id,
             max_new_tokens=MAX_NEW_TOKENS,
+            max_length=None,
         )
 
         return self._tokenizer.batch_decode(
