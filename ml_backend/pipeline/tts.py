@@ -5,7 +5,7 @@ import torchaudio
 
 from pipeline.audio import tensor_to_b64_wav
 
-MODEL = outetts.Models.VERSION_1_0_SIZE_1B
+MODEL = outetts.Models.VERSION_1_0_SIZE_1B # Selected to run on Modal, constrained on local testing
 BACKEND = outetts.Backend.HF
 DEFAULT_SPEAKER = "en-female-1-neutral"
 

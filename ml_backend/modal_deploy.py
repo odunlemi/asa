@@ -2,7 +2,14 @@ import modal
 
 image = (
     modal.Image.debian_slim(python_version="3.11")
+    .apt_install(
+        "libsdl2-dev",
+        "libsdl2-image-dev",
+        "libsdl2-mixer-dev",
+        "libsdl2-ttf-dev",
+    )
     .pip_install_from_requirements("requirements.txt")
+    .add_local_python_source("pipeline", "transcription", "translation")
 )
 
 app = modal.App("asa-tts", image=image)

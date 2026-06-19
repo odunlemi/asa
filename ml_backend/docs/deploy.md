@@ -44,6 +44,16 @@ npx convex env set MODAL_TTS_ENDPOINT https://<your-workspace>--asa-tts-yorubatt
 
 ---
 
+## Important note on local testing
+
+The 1B OuteTTS model does not run reliably on memory-constrained local
+machines (under 8GB RAM gets OOM-killed once NLLB-200 is also loaded).
+Modal's T4 GPU instance has 16GB VRAM and handles the 1B model
+comfortably, so TTS is tested directly on Modal rather than locally.
+
+`/transcribe` and `/translate` remain fully testable locally via uvicorn.
+`/synthesise` is tested only after deployment.
+
 ## Important note on language support
 
 The base OuteTTS-0.2-500M model supports English, Chinese, Japanese, and
