@@ -9,8 +9,6 @@ from transcription.client import AssemblyAIClient
 
 app = FastAPI(title="Asa ML Backend")
 
-CONVEX_SITE_URL = os.environ.get("CONVEX_SITE_URL", "")
-
 
 class TranslateRequest(BaseModel):
     text: str
@@ -44,21 +42,35 @@ async def transcribe(audio: UploadFile) -> dict:
 
 @app.post("/translate")
 async def translate(body: TranslateRequest) -> dict:
-    """Shim that calls the Convex translate action for local testing."""
-    if not CONVEX_SITE_URL:
-        raise HTTPException(
-            status_code=503,
-            detail="CONVEX_SITE_URL is not set",
-        )
+    """Call NLLB-200 via HF Inference API and return Yoruba text."""
+    hf_token = os.environ.get("HF_TOKEN")
+    if not hf_token:
+        raise HTTPException(status_code=503, detail="HF_TOKEN is not set")
 
     try:
-        async with httpx.AsyncClient(timeout=30) as client:
+        async with httpx.AsyncClient(timeout=60) as client:
             response = await client.post(
-                f"{CONVEX_SITE_URL}/actions/translate",
-                json={"text": body.text},
+                "https://api-inference.huggingface.co/models/facebook/nllb-200-distilled-600M",
+                headers={
+                    "Authorization": f"Bearer {hf_token}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "inputs": body.text,
+                    "parameters": {
+                        "src_lang": "eng_Latn",
+                        "tgt_lang": "yor_Latn",
+                    },
+                },
             )
             response.raise_for_status()
     except httpx.HTTPStatusError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
 
-    return {"yoruba": response.json()}
+    data = response.json()
+    yoruba = data[0].get("translation_text") if data else None
+
+    if not yoruba:
+        raise HTTPException(status_code=502, detail="No translation returned from NLLB-200")
+
+    return {"yoruba": yoruba}
