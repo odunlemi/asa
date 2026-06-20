@@ -21,6 +21,8 @@ class TranslateRequest(BaseModel):
 class SynthesiseRequest(BaseModel):
     text: str
 
+class TranscribeUrlRequest(BaseModel):
+    upload_url: str
 
 @app.get("/")
 def health() -> dict:
@@ -44,6 +46,19 @@ async def transcribe(audio: UploadFile) -> dict:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
     finally:
         os.unlink(tmp_path)
+
+    return {"text": text}
+
+
+@app.post("/transcribe-url")
+def transcribe_url(body: TranscribeUrlRequest) -> dict:
+    """Submit and poll a transcript for audio already uploaded to AssemblyAI."""
+    try:
+        client = AssemblyAIClient()
+        job_id = client.submit(body.upload_url)
+        text = client.poll(job_id)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
 
     return {"text": text}
 
