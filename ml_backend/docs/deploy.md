@@ -37,6 +37,25 @@ https://<your-workspace>--asa-backend-fastapi-app.modal.run
 This single URL serves all four routes: `/`, `/transcribe`,
 `/transcribe-url`, `/translate`, `/synthesise`.
 
+### Forcing a fresh container
+
+By default Modal uses a rolling deployment: existing warm containers
+keep serving requests on the old code until new containers finish
+their own startup. During active development this can mean a test
+request lands on a stale container running outdated logic.
+
+To guarantee the next request hits fresh code immediately, terminate
+existing containers as part of the deploy:
+
+```bash
+modal deploy modal_deploy.py --strategy recreate
+```
+
+This trades a moment of downtime for certainty, useful whenever a
+deploy changes container startup behaviour (model pre-warming, secret
+changes, dependency updates) and the next test needs to reflect that
+change exactly.
+
 ---
 
 ## Wire into Convex
