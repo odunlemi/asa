@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as actions_orchestrate from "../actions/orchestrate.js";
 import type * as actions_translate from "../actions/translate.js";
 import type * as mutations_saveTranslation from "../mutations/saveTranslation.js";
 import type * as queries_history from "../queries/history.js";
@@ -19,6 +20,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  "actions/orchestrate": typeof actions_orchestrate;
   "actions/translate": typeof actions_translate;
   "mutations/saveTranslation": typeof mutations_saveTranslation;
   "queries/history": typeof queries_history;

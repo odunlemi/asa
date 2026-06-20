@@ -28,6 +28,13 @@ app = modal.App("asa-backend", image=image)
 )
 @modal.asgi_app()
 def fastapi_app():
-    from app import app as web_app
+    from app import app as web_app, get_translation_model, get_tts_pipeline
+
+    # Pre-warm both models at container startup so the first real request
+    # does not pay the model-load cost and time out (the lazy getters in
+    # app.py are correct for local dev, but a cold /synthesise call here
+    # was taking long enough to trip a request-level timeout).
+    get_translation_model()
+    get_tts_pipeline()
 
     return web_app
