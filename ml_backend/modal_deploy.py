@@ -13,20 +13,21 @@ image = (
     )
     .pip_install_from_requirements("requirements.txt")
     .add_local_python_source("pipeline", "transcription", "translation")
+    .add_local_file("app.py", "/root/app.py")
 )
 
-app = modal.App("asa-tts", image=image)
+app = modal.App("asa-backend", image=image)
 
 
-@app.cls(gpu="T4", secrets=[modal.Secret.from_name("hf-token")])
-class YorubaTTS:
-    @modal.enter()
-    def load(self):
-        from pipeline.tts import TtsPipeline
+@app.function(
+    gpu="T4",
+    secrets=[
+        modal.Secret.from_name("hf-token"),
+        modal.Secret.from_name("assemblyai-key"),
+    ],
+)
+@modal.asgi_app()
+def fastapi_app():
+    from app import app as web_app
 
-        self.pipeline = TtsPipeline()
-
-    @modal.fastapi_endpoint(method="POST")
-    def synthesise(self, body: dict):
-        audio_b64 = self.pipeline.run(body["text"])
-        return {"audio_b64": audio_b64}
+    return web_app
