@@ -8,7 +8,10 @@ MAX_NEW_TOKENS = 256
 
 class TranslationModel:
     def __init__(self) -> None:
-        self._tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
+        self._tokenizer = AutoTokenizer.from_pretrained(
+            MODEL_ID,
+            src_lang=SRC_LANG,
+        )
         self._model = AutoModelForSeq2SeqLM.from_pretrained(MODEL_ID)
         self._model.eval()
 
@@ -16,7 +19,6 @@ class TranslationModel:
         inputs = self._tokenizer(
             text,
             return_tensors="pt",
-            src_lang=SRC_LANG,
         )
 
         target_lang_id = self._tokenizer.convert_tokens_to_ids(TGT_LANG)
