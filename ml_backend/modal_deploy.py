@@ -21,6 +21,7 @@ app = modal.App("asa-backend", image=image)
 
 @app.function(
     gpu="T4",
+    timeout=900,
     secrets=[
         modal.Secret.from_name("hf-token"),
         modal.Secret.from_name("assemblyai-key"),
