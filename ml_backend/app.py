@@ -2,7 +2,7 @@ import os
 import tempfile
 
 from fastapi import FastAPI, HTTPException, UploadFile
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from transcription.client import AssemblyAIClient
 
@@ -35,7 +35,7 @@ class TranslateRequest(BaseModel):
 
 
 class SynthesiseRequest(BaseModel):
-    text: str
+    text: str = Field(max_length=500)
 
 
 class TranscribeUrlRequest(BaseModel):
