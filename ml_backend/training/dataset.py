@@ -2,7 +2,7 @@ from datasets import load_dataset
 
 from training.config import MAX_TRAINING_HOURS
 
-EXPECTED_FIELDS = {"audio", "transcript", "language", "speaker_id"}
+EXPECTED_FIELDS = {"audio", "text", "language", "speaker_id"}
 
 
 def load_yoruba_subset(max_hours: float = MAX_TRAINING_HOURS):
@@ -41,7 +41,7 @@ def load_yoruba_subset(max_hours: float = MAX_TRAINING_HOURS):
 
         collected.append(
             {
-                "text": row["transcript"],
+                "text": row["text"],
                 "audio_array": audio["array"],
                 "sampling_rate": audio["sampling_rate"],
                 "speaker_id": row.get("speaker_id"),
