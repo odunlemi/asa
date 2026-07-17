@@ -2,9 +2,35 @@ import os
 import tempfile
 
 import torch
+import torch.utils
+import torch.utils.data
 import torchaudio
 from torch.optim import AdamW
 from torch.utils.data import DataLoader, Dataset
+
+# torch.package (used by OuteTTS's bundled DAC audio codec checkpoint)
+# lazily reaches into torch.utils via getattr at unpickle time. On
+# recent torch versions this submodule is not guaranteed to already be
+# imported, producing a confusing "module 'torch' has no attribute
+# 'utils'" deep inside the checkpoint loader. Importing it explicitly
+# up front, before OuteTTS touches the checkpoint, avoids that.
+
+# PyTorch 2.6+ changed torch.load's default weights_only from False to
+# True. OuteTTS's bundled DAC audio codec checkpoint is a legacy pickled
+# archive, not a plain weights-only state dict, so the new restricted
+# default breaks loading it with a confusing downstream AttributeError.
+# This restores the pre-2.6 behavior globally before OuteTTS loads
+# anything. Safe here since the checkpoint comes from OuteTTS's own
+# official model repo, not an untrusted source.
+_original_torch_load = torch.load
+
+
+def _legacy_torch_load(*args, **kwargs):
+    kwargs.setdefault("weights_only", False)
+    return _original_torch_load(*args, **kwargs)
+
+
+torch.load = _legacy_torch_load
 
 from training.config import (
     BATCH_SIZE,
@@ -152,6 +178,7 @@ def train():
     for epoch in range(EPOCHS):
         print(f"Epoch {epoch + 1}/{EPOCHS}")
         for batch in loader:
+            batch = {k: v.to(model.device) for k, v in batch.items()}
             outputs = model(**batch)
             loss = outputs.loss
 
