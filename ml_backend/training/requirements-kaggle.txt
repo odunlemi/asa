@@ -1,0 +1,9 @@
+# Kaggle-specific requirements for training.
+# Kaggle's base image pre-installs torch, transformers, numpy, protobuf,
+# tensorflow, and many google-cloud packages. Pinning those here causes
+# version conflicts that break tensorflow's protobuf imports.
+# Only install what Kaggle doesn't have.
+outetts==0.4.4
+httpx==0.28.1
+uroman==1.3.1.1
+sentencepiece==0.2.1
