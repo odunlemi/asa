@@ -5,39 +5,33 @@ import torch
 import torch.utils
 import torch.utils.data
 import torchaudio
-from torch.optim import AdamW
 from torch.utils.data import DataLoader, Dataset
 
-# torch.package (used by OuteTTS's bundled DAC audio codec checkpoint)
-# lazily reaches into torch.utils via getattr at unpickle time. On
-# recent torch versions this submodule is not guaranteed to already be
-# imported, producing a confusing "module 'torch' has no attribute
-# 'utils'" deep inside the checkpoint loader. Importing it explicitly
-# up front, before OuteTTS touches the checkpoint, avoids that.
+# OuteTTS's bundled DAC audio codec checkpoint uses a legacy torch.package
+# format incompatible with torch 2.6+ weights_only=True default. The patch
+# below must run before any outetts import. It is applied to torch.serialization
+# directly to avoid recursion if this module is reloaded in a Jupyter session.
+import torch.serialization as _torch_serialization
+_orig_serialization_load = _torch_serialization.load
 
-# PyTorch 2.6+ changed torch.load's default weights_only from False to
-# True. OuteTTS's bundled DAC audio codec checkpoint is a legacy pickled
-# archive, not a plain weights-only state dict, so the new restricted
-# default breaks loading it with a confusing downstream AttributeError.
-# This restores the pre-2.6 behavior globally before OuteTTS loads
-# anything. Safe here since the checkpoint comes from OuteTTS's own
-# official model repo, not an untrusted source.
-_original_torch_load = torch.load
-
-
-def _legacy_torch_load(*args, **kwargs):
+def _patched_serialization_load(*args, **kwargs):
     kwargs.setdefault("weights_only", False)
-    return _original_torch_load(*args, **kwargs)
+    return _orig_serialization_load(*args, **kwargs)
 
-
-torch.load = _legacy_torch_load
+_torch_serialization.load = _patched_serialization_load
+torch.load = _patched_serialization_load
 
 from training.config import (
     BATCH_SIZE,
     CHECKPOINT_DIR,
     CHECKPOINT_EVERY_N_STEPS,
     EPOCHS,
+    GRADIENT_ACCUMULATION_STEPS,
     LEARNING_RATE,
+    LORA_ALPHA,
+    LORA_DROPOUT,
+    LORA_R,
+    LORA_TARGET_MODULES,
     MODEL_ID,
     OUTPUT_REPO,
     WEIGHT_DECAY,
@@ -49,15 +43,13 @@ def get_hf_token() -> str:
     """Read HF_TOKEN from Kaggle Secrets if running on Kaggle, else env."""
     try:
         from kaggle_secrets import UserSecretsClient
-
         return UserSecretsClient().get_secret("HF_TOKEN")
     except ImportError:
         token = os.environ.get("HF_TOKEN")
         if not token:
             raise RuntimeError(
                 "HF_TOKEN not found. Set it as a Kaggle Secret named "
-                "HF_TOKEN, or export it as an environment variable "
-                "if running outside Kaggle."
+                "HF_TOKEN, or export it as an environment variable."
             )
         return token
 
@@ -81,9 +73,6 @@ class YorubaSpeakerDataset(Dataset):
             try:
                 self._prompts.append(self._build_prompt(sample))
             except Exception as exc:
-                # A handful of bad samples (silence, corrupt audio,
-                # failed whisper alignment) should not crash the
-                # entire training run.
                 print(f"Skipping sample due to error: {exc}")
 
     def _build_prompt(self, sample) -> str:
@@ -114,7 +103,7 @@ def collate(batch, tokenizer):
         return_tensors="pt",
         padding=True,
         truncation=True,
-        max_length=8192,
+        max_length=1024,
         add_special_tokens=False,
     )
     encoded["labels"] = encoded["input_ids"].clone()
@@ -131,27 +120,78 @@ def find_latest_checkpoint() -> str | None:
     return os.path.join(CHECKPOINT_DIR, checkpoints[-1]) if checkpoints else None
 
 
+def load_qlora_model(model_id: str, hf_token: str):
+    """Load the base model in 4-bit NF4 quantization and wrap with LoRA adapters.
+
+    The base model is loaded directly via AutoModelForCausalLM rather than
+    through OuteTTS's Interface, because quantization config must be supplied
+    at load time and cannot be applied to an already-loaded model. OuteTTS's
+    Interface is kept alive separately, used only for prompt building and
+    speaker creation.
+
+    Returns the LoRA-wrapped model and tokenizer.
+    """
+    from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
+    from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
+
+    bnb_config = BitsAndBytesConfig(
+        load_in_4bit=True,
+        bnb_4bit_quant_type="nf4",
+        bnb_4bit_compute_dtype=torch.bfloat16,
+        bnb_4bit_use_double_quant=True,
+    )
+
+    model = AutoModelForCausalLM.from_pretrained(
+        model_id,
+        quantization_config=bnb_config,
+        device_map="auto",
+        token=hf_token,
+    )
+
+    model = prepare_model_for_kbit_training(model)
+
+    lora_config = LoraConfig(
+        r=LORA_R,
+        lora_alpha=LORA_ALPHA,
+        lora_dropout=LORA_DROPOUT,
+        target_modules=LORA_TARGET_MODULES,
+        bias="none",
+        task_type="CAUSAL_LM",
+    )
+
+    model = get_peft_model(model, lora_config)
+    model.print_trainable_parameters()
+
+    tokenizer = AutoTokenizer.from_pretrained(model_id, token=hf_token)
+
+    return model, tokenizer
+
+
 def train():
     import outetts
 
     hf_token = get_hf_token()
     os.environ["HF_TOKEN"] = hf_token
 
-    print("Loading OuteTTS interface and base model...")
+    print("Loading OuteTTS interface for prompt building...")
     model_config = outetts.ModelConfig.auto_config(
         model=outetts.Models.VERSION_1_0_SIZE_1B,
         backend=outetts.Backend.HF,
     )
     interface = outetts.Interface(config=model_config)
-    model = interface.model.model
-    tokenizer = interface.prompt_processor.tokenizer
 
+    print("Loading base model in 4-bit NF4 quantization with LoRA adapters...")
     resume_path = find_latest_checkpoint()
-    start_step = 0
     if resume_path:
+        from transformers import AutoTokenizer
+        from peft import PeftModel, AutoModelForCausalLM
         print(f"Resuming from checkpoint: {resume_path}")
-        model = type(model).from_pretrained(resume_path)
+        base_model, tokenizer = load_qlora_model(MODEL_ID, hf_token)
+        model = PeftModel.from_pretrained(base_model, resume_path)
         start_step = int(os.path.basename(resume_path).split("-")[1])
+    else:
+        model, tokenizer = load_qlora_model(MODEL_ID, hf_token)
+        start_step = 0
 
     print("Loading and preparing Yoruba training data...")
     raw_samples = load_yoruba_subset()
@@ -165,8 +205,8 @@ def train():
         collate_fn=lambda batch: collate(batch, tokenizer),
     )
 
-    optimizer = AdamW(
-        model.parameters(),
+    optimizer = torch.optim.AdamW(
+        filter(lambda p: p.requires_grad, model.parameters()),
         lr=LEARNING_RATE,
         weight_decay=WEIGHT_DECAY,
     )
@@ -174,28 +214,33 @@ def train():
     os.makedirs(CHECKPOINT_DIR, exist_ok=True)
     model.train()
     step = start_step
+    accumulated_loss = 0.0
 
     for epoch in range(EPOCHS):
         print(f"Epoch {epoch + 1}/{EPOCHS}")
-        for batch in loader:
+        optimizer.zero_grad()
+
+        for i, batch in enumerate(loader):
             batch = {k: v.to(model.device) for k, v in batch.items()}
             outputs = model(**batch)
-            loss = outputs.loss
-
-            optimizer.zero_grad()
+            loss = outputs.loss / GRADIENT_ACCUMULATION_STEPS
             loss.backward()
-            optimizer.step()
+            accumulated_loss += loss.item()
 
-            step += 1
-            if step % 10 == 0:
-                print(f"step {step}, loss {loss.item():.4f}")
+            if (i + 1) % GRADIENT_ACCUMULATION_STEPS == 0:
+                optimizer.step()
+                optimizer.zero_grad()
+                step += 1
+                print(f"step {step}, loss {accumulated_loss:.4f}")
+                accumulated_loss = 0.0
 
-            if step % CHECKPOINT_EVERY_N_STEPS == 0:
-                ckpt_path = os.path.join(CHECKPOINT_DIR, f"step-{step}")
-                model.save_pretrained(ckpt_path)
-                print(f"Saved checkpoint: {ckpt_path}")
+                if step % CHECKPOINT_EVERY_N_STEPS == 0:
+                    ckpt_path = os.path.join(CHECKPOINT_DIR, f"step-{step}")
+                    model.save_pretrained(ckpt_path)
+                    print(f"Saved checkpoint: {ckpt_path}")
 
-    print(f"Training complete. Pushing final checkpoint to {OUTPUT_REPO}")
+    print(f"Training complete. Pushing LoRA adapters to {OUTPUT_REPO}")
+    model.save_pretrained(OUTPUT_REPO)
     model.push_to_hub(OUTPUT_REPO, token=hf_token)
     tokenizer.push_to_hub(OUTPUT_REPO, token=hf_token)
 
