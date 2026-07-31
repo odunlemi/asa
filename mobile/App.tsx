@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, StatusBar } from 'react-native';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFonts, Ojuju_700Bold, Ojuju_800ExtraBold } from '@expo-google-fonts/ojuju';
 import {
   HankenGrotesk_500Medium,
@@ -8,7 +8,7 @@ import {
   HankenGrotesk_700Bold,
 } from '@expo-google-fonts/hanken-grotesk';
 import * as SplashScreen from 'expo-splash-screen';
-import { ConvexProvider, ConvexReactClient, useQuery } from 'convex/react';
+import { ConvexProvider, ConvexReactClient, useMutation, useQuery } from 'convex/react';
 
 import { api } from '../app/convex/_generated/api';
 import { Id } from '../app/convex/_generated/dataModel';
@@ -17,7 +17,9 @@ import { RecordButton } from './src/components/RecordButton';
 import { StatusDisplay } from './src/components/StatusDisplay';
 import { TranslationCard } from './src/components/TranslationCard';
 import { AudioPlayer } from './src/components/AudioPlayer';
-import { HistoryList, HistoryItem } from './src/components/HistoryList';
+import { HistoryList } from './src/components/HistoryList';
+import { GlassBar } from './src/components/GlassBar';
+import { IdleHint } from './src/components/IdleHint';
 import { useRecording } from './src/hooks/useRecording';
 import { useTranslation } from './src/hooks/useTranslation';
 import { tokens, type } from './src/constants/theme';
@@ -32,12 +34,16 @@ function MainScreen() {
   const [yorubaText, setYoruba] = useState('');
   const [translationId, setTranslationId] = useState<Id<'translations'> | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [barHeights, setBarHeights] = useState({ header: 0, controls: 0 });
+  const insets = useSafeAreaInsets();
 
   const history = useQuery(api.queries.history.history, { limit: 5 }) ?? [];
   const translation = useQuery(
     api.queries.translation.translation,
     translationId ? { translationId } : 'skip',
   );
+
+  const clearHistory = useMutation(api.mutations.clearHistory.clearHistory);
 
   const { startRecording, stopRecording } = useRecording({ setStatus });
   const { runPipeline } = useTranslation({
@@ -66,22 +72,28 @@ function MainScreen() {
     }
   };
 
+  const handleClear = async () => {
+    await clearHistory();
+    setEnglish(''); setYoruba(''); setTranslationId(null); setError(null);
+    setStatus('idle');
+  };
+
+  const showIdleHint = !englishText && !yorubaText && !error;
+
   return (
-    <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      <StatusBar barStyle="light-content" backgroundColor={tokens.bgScreen} />
+    <View style={styles.safe}>
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
-      {/* ── Header ───────────────────────────────────────────────────── */}
-      <View style={styles.header}>
-        <Text style={styles.wordmark}>Àṣà</Text>
-        <Text style={styles.subtitle}>English to Yorùbá</Text>
-      </View>
-
-      {/* ── Content ──────────────────────────────────────────────────── */}
+      {/* ── Content, scrolling under both glass bars ──────────────────── */}
       <ScrollView
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={[
+          styles.scroll,
+          { paddingTop: barHeights.header + 16, paddingBottom: barHeights.controls + 24 },
+        ]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
+        {showIdleHint && <IdleHint />}
         <TranslationCard lang="EN" text={englishText} visible={!!englishText} />
         <TranslationCard lang="YO" text={yorubaText} visible={!!yorubaText} accent />
         {translationId && (
@@ -97,15 +109,34 @@ function MainScreen() {
             setEnglish(item.englishText); setYoruba(item.yorubaText);
             setTranslationId(item._id); setError(null); setStatus('ready');
           }}
+          onClear={handleClear}
         />
       </ScrollView>
 
+      {/* ── Header ───────────────────────────────────────────────────── */}
+      <GlassBar
+        edge="top"
+        style={{ ...styles.header, paddingTop: insets.top + 16 }}
+        onLayout={({ nativeEvent: { layout } }) =>
+          setBarHeights(h => ({ ...h, header: layout.height }))
+        }
+      >
+        <Text style={styles.wordmark}>Àṣà</Text>
+        <Text style={styles.subtitle}>English to Yorùbá</Text>
+      </GlassBar>
+
       {/* ── Controls bar ─────────────────────────────────────────────── */}
-      <View style={styles.controls}>
+      <GlassBar
+        edge="bottom"
+        style={{ ...styles.controls, paddingBottom: insets.bottom + 20 }}
+        onLayout={({ nativeEvent: { layout } }) =>
+          setBarHeights(h => ({ ...h, controls: layout.height }))
+        }
+      >
         <StatusDisplay status={status} />
         <RecordButton status={status} onPress={handleRecord} />
-      </View>
-    </SafeAreaView>
+      </GlassBar>
+    </View>
   );
 }
 
@@ -146,10 +177,7 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: 20,
-    paddingTop: 16,
     paddingBottom: 18,
-    borderBottomWidth: 1,
-    borderBottomColor: tokens.border,
   },
   wordmark: {
     ...type.headline,
@@ -162,9 +190,8 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   scroll: {
-    padding: 16,
+    paddingHorizontal: 16,
     gap: 12,
-    paddingBottom: 24,
   },
   error: {
     ...type.caption,
@@ -174,17 +201,8 @@ const styles = StyleSheet.create({
     padding: 14,
   },
   controls: {
-    paddingVertical: 20,
-    paddingBottom: 28,
+    paddingTop: 20,
     alignItems: 'center',
     gap: 14,
-    backgroundColor: tokens.bgScreen,
-    borderTopWidth: 1,
-    borderTopColor: tokens.border,
-    shadowColor: tokens.shadowColor,
-    shadowOffset: { width: 0, height: -3 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 8,
   },
 });

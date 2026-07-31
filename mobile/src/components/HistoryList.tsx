@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Animated, Alert } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Id } from '../../../app/convex/_generated/dataModel';
 import { tokens, type, cardShadow } from '../constants/theme';
@@ -11,7 +11,11 @@ export interface HistoryItem {
   audioUrl: string | null;
 }
 
-interface Props { items: HistoryItem[]; onSelect: (item: HistoryItem) => void; }
+interface Props {
+  items: HistoryItem[];
+  onSelect: (item: HistoryItem) => void;
+  onClear: () => void;
+}
 
 function HistoryRow({ item, onSelect }: { item: HistoryItem; onSelect: (i: HistoryItem) => void }) {
   const [open, setOpen] = useState(false);
@@ -48,12 +52,23 @@ function HistoryRow({ item, onSelect }: { item: HistoryItem; onSelect: (i: Histo
   );
 }
 
-export function HistoryList({ items, onSelect }: Props) {
+export function HistoryList({ items, onSelect, onClear }: Props) {
   if (items.length === 0) return null;
+
+  const confirmClear = () =>
+    Alert.alert('Clear recents', 'This deletes every saved translation and its audio.', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Clear', style: 'destructive', onPress: onClear },
+    ]);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.heading}>RECENT</Text>
+      <View style={styles.headingRow}>
+        <Text style={styles.heading}>RECENT</Text>
+        <TouchableOpacity onPress={confirmClear} activeOpacity={0.7} hitSlop={10}>
+          <Text style={styles.clear}>CLEAR</Text>
+        </TouchableOpacity>
+      </View>
       <View style={styles.card}>
         {items.map((item, index) => (
           <View key={item._id}>
@@ -68,11 +83,20 @@ export function HistoryList({ items, onSelect }: Props) {
 
 const styles = StyleSheet.create({
   container: { marginTop: 4 },
+  headingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+    marginHorizontal: 4,
+  },
   heading: {
     ...type.label,
     color: tokens.textMuted,
-    marginBottom: 10,
-    marginLeft: 4,
+  },
+  clear: {
+    ...type.label,
+    color: tokens.accentGold,
   },
   card: {
     backgroundColor: tokens.bgCard,
