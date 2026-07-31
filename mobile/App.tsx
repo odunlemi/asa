@@ -8,6 +8,10 @@ import {
   HankenGrotesk_700Bold,
 } from '@expo-google-fonts/hanken-grotesk';
 import * as SplashScreen from 'expo-splash-screen';
+import { ConvexProvider, ConvexReactClient, useQuery } from 'convex/react';
+
+import { api } from '../app/convex/_generated/api';
+import { Id } from '../app/convex/_generated/dataModel';
 
 import { RecordButton } from './src/components/RecordButton';
 import { StatusDisplay } from './src/components/StatusDisplay';
@@ -26,22 +30,38 @@ function MainScreen() {
   const [status, setStatus] = useState<AppStatus>('idle');
   const [englishText, setEnglish] = useState('');
   const [yorubaText, setYoruba] = useState('');
-  const [audioB64, setAudio] = useState<string | null>(null);
-  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [translationId, setTranslationId] = useState<Id<'translations'> | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const { startRecording, stopRecording } = useRecording({ setStatus, setEnglish });
+  const history = useQuery(api.queries.history.history, { limit: 5 }) ?? [];
+  const translation = useQuery(
+    api.queries.translation.translation,
+    translationId ? { translationId } : 'skip',
+  );
+
+  const { startRecording, stopRecording } = useRecording({ setStatus });
   const { runPipeline } = useTranslation({
-    setStatus, setYoruba, setAudio,
-    onComplete: (en, yo, audio) =>
-      setHistory(h => [{ en, yo, audio, id: Date.now() }, ...h].slice(0, 5)),
+    setStatus, setEnglish, setYoruba, setTranslationId, setError,
   });
+
+  // Synthesis runs detached from the request, so the row tells us when it lands.
+  useEffect(() => {
+    if (status === 'synthesising' && (translation?.audioUrl || translation?.audioError)) {
+      setStatus('ready');
+    }
+  }, [status, translation?.audioUrl, translation?.audioError]);
 
   const handleRecord = async () => {
     if (status === 'recording') {
-      const t = await stopRecording();
-      if (t) await runPipeline(t);
+      const uri = await stopRecording();
+      if (uri) {
+        await runPipeline(uri);
+      } else {
+        setError('Recording failed');
+        setStatus('error');
+      }
     } else if (['idle', 'ready', 'error'].includes(status)) {
-      setEnglish(''); setYoruba(''); setAudio(null);
+      setEnglish(''); setYoruba(''); setTranslationId(null); setError(null);
       await startRecording();
     }
   };
@@ -64,12 +84,18 @@ function MainScreen() {
       >
         <TranslationCard lang="EN" text={englishText} visible={!!englishText} />
         <TranslationCard lang="YO" text={yorubaText} visible={!!yorubaText} accent />
-        {audioB64 && <AudioPlayer audioB64={audioB64} />}
+        {translationId && (
+          <AudioPlayer
+            audioUrl={translation?.audioUrl ?? null}
+            audioError={translation?.audioError}
+          />
+        )}
+        {error && <Text style={styles.error}>{error}</Text>}
         <HistoryList
           items={history}
           onSelect={item => {
-            setEnglish(item.en); setYoruba(item.yo);
-            setAudio(item.audio); setStatus('ready');
+            setEnglish(item.englishText); setYoruba(item.yorubaText);
+            setTranslationId(item._id); setError(null); setStatus('ready');
           }}
         />
       </ScrollView>
@@ -84,6 +110,10 @@ function MainScreen() {
 }
 
 SplashScreen.preventAutoHideAsync();
+
+const convex = new ConvexReactClient(process.env.EXPO_PUBLIC_CONVEX_URL!, {
+  unsavedChangesWarning: false,
+});
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -101,9 +131,11 @@ export default function App() {
   if (!fontsLoaded) return null;
 
   return (
-    <SafeAreaProvider>
-      <MainScreen />
-    </SafeAreaProvider>
+    <ConvexProvider client={convex}>
+      <SafeAreaProvider>
+        <MainScreen />
+      </SafeAreaProvider>
+    </ConvexProvider>
   );
 }
 
@@ -133,6 +165,13 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 12,
     paddingBottom: 24,
+  },
+  error: {
+    ...type.caption,
+    color: tokens.danger,
+    backgroundColor: tokens.dangerLight,
+    borderRadius: 12,
+    padding: 14,
   },
   controls: {
     paddingVertical: 20,
