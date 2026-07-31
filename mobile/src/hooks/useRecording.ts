@@ -1,65 +1,39 @@
-import { useRef } from 'react';
-import { Audio } from 'expo-av';
+import {
+    AudioModule,
+    RecordingPresets,
+    setAudioModeAsync,
+    useAudioRecorder,
+} from 'expo-audio';
 import { AppStatus } from '../../App';
-
-// Cycles through these on each recording so the UI feels varied
-const MOCK_TRANSCRIPTS = [
-    'Good morning, how are you?',
-    'What is your name?',
-    'I need help, please.',
-    'Where is the hospital?',
-    'Thank you very much.',
-    'Please speak slowly.',
-    'I do not understand.',
-    'How much does this cost?',
-];
-
-let mockIndex = 0;
 
 export function useRecording({
     setStatus,
-    setEnglish,
 }: {
     setStatus: (s: AppStatus) => void;
-    setEnglish: (t: string) => void;
 }) {
-    const recordingRef = useRef<Audio.Recording | null>(null);
+    const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
 
-    const startRecording = async () => {
-        const { granted } = await Audio.requestPermissionsAsync();
-        await Audio.setAudioModeAsync({
-            allowsRecordingIOS: true,
-            playsInSilentModeIOS: true,
-        });
-
-        if (granted) {
-            // Real recording — so the mic indicator lights up on device
-            try {
-                const { recording } = await Audio.Recording.createAsync(
-                    Audio.RecordingOptionsPresets.HIGH_QUALITY
-                );
-                recordingRef.current = recording;
-            } catch {
-                // Permission physically denied after the dialog — continue anyway
-            }
+    const startRecording = async (): Promise<boolean> => {
+        const { granted } = await AudioModule.requestRecordingPermissionsAsync();
+        if (!granted) {
+            setStatus('error');
+            return false;
         }
 
+        await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
+        await recorder.prepareToRecordAsync();
+        recorder.record();
         setStatus('recording');
+        return true;
     };
 
+    /** Returns the local .m4a uri, or null if the recording never started. */
     const stopRecording = async (): Promise<string | null> => {
-        setStatus('transcribing');
-
-        try {
-            await recordingRef.current?.stopAndUnloadAsync();
-        } catch { }
-        recordingRef.current = null;
-
-        // Return the next mock transcript in the cycle
-        const transcript = MOCK_TRANSCRIPTS[mockIndex % MOCK_TRANSCRIPTS.length];
-        mockIndex++;
-        setEnglish(transcript);
-        return transcript;
+        await recorder.stop();
+        // Playback through the earpiece is quiet on iOS while the session is
+        // still configured for recording.
+        await setAudioModeAsync({ allowsRecording: false, playsInSilentMode: true });
+        return recorder.uri;
     };
 
     return { startRecording, stopRecording };
