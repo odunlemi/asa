@@ -6,6 +6,16 @@ export const history = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, { limit = 20 }) => {
-    return await ctx.db.query("translations").order("desc").take(limit);
+    const translations = await ctx.db
+      .query("translations")
+      .order("desc")
+      .take(limit);
+
+    return await Promise.all(
+      translations.map(async ({ audioStorageId, ...translation }) => ({
+        ...translation,
+        audioUrl: audioStorageId ? await ctx.storage.getUrl(audioStorageId) : null,
+      })),
+    );
   },
 });
