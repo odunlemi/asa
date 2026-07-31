@@ -2,6 +2,8 @@
   "dependencies": {
     "convex": "^1.41.0"
   },
-  "convex:dev": "convex dev",
-  "convex:deploy": "convex deploy"
+  "scripts": {
+    "convex:dev": "convex dev",
+    "convex:deploy": "convex deploy"
+  }
 }

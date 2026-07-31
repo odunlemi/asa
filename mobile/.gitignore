@@ -42,3 +42,6 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# committed template for EXPO_PUBLIC_CONVEX_URL
+!.env.example

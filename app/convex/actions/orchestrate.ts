@@ -1,34 +1,44 @@
 "use node";
 
 import { action } from "../_generated/server";
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import { api } from "../_generated/api";
+import { Id } from "../_generated/dataModel";
 
 type OrchestrateResult = {
+  translationId: Id<"translations">;
   englishText: string;
   yorubaText: string;
-  audioB64: string | null;
 };
 
-type PipelineStage = "transcription" | "translation" | "synthesis";
+type PipelineStage = "transcription" | "translation";
 
-class PipelineError extends Error {
+function pipelineError(stage: PipelineStage, err: unknown): ConvexError<{
   stage: PipelineStage;
-
-  constructor(stage: PipelineStage, message: string) {
-    super(message);
-    this.stage = stage;
-  }
+  message: string;
+}> {
+  return new ConvexError({
+    stage,
+    message: err instanceof Error ? err.message : `Unknown ${stage} error`,
+  });
 }
 
 export const orchestrate = action({
   args: {
-    audioUploadUrl: v.string(),
+    storageId: v.id("_storage"),
   },
-  handler: async (ctx, { audioUploadUrl }): Promise<OrchestrateResult> => {
+  handler: async (ctx, { storageId }): Promise<OrchestrateResult> => {
     const backendUrl = process.env.ML_BACKEND_URL;
     if (!backendUrl) {
-      throw new PipelineError("transcription", "ML_BACKEND_URL is not set");
+      throw pipelineError("transcription", new Error("ML_BACKEND_URL is not set"));
+    }
+
+    // The client uploads audio to Convex storage rather than to AssemblyAI, so
+    // the API key never leaves the backend. AssemblyAI fetches the recording
+    // from this signed URL itself.
+    const audioUrl = await ctx.storage.getUrl(storageId);
+    if (!audioUrl) {
+      throw pipelineError("transcription", new Error("Uploaded audio not found"));
     }
 
     let englishText: string;
@@ -36,7 +46,7 @@ export const orchestrate = action({
       const transcribeResponse = await fetch(`${backendUrl}/transcribe-url`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ upload_url: audioUploadUrl }),
+        body: JSON.stringify({ upload_url: audioUrl }),
       });
 
       if (!transcribeResponse.ok) {
@@ -47,10 +57,10 @@ export const orchestrate = action({
 
       ({ text: englishText } = await transcribeResponse.json());
     } catch (err) {
-      throw new PipelineError(
-        "transcription",
-        err instanceof Error ? err.message : "Unknown transcription error",
-      );
+      throw pipelineError("transcription", err);
+    } finally {
+      // The transcript is the only artefact worth keeping.
+      await ctx.storage.delete(storageId);
     }
 
     let yorubaText: string;
@@ -59,35 +69,19 @@ export const orchestrate = action({
         text: englishText,
       });
     } catch (err) {
-      throw new PipelineError(
-        "translation",
-        err instanceof Error ? err.message : "Unknown translation error",
-      );
+      throw pipelineError("translation", err);
     }
 
-    let audioB64: string | null = null;
-    try {
-      const synthesiseResponse = await fetch(`${backendUrl}/synthesise`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: yorubaText }),
-      });
+    const translationId: Id<"translations"> = await ctx.runMutation(
+      api.mutations.saveTranslation.saveTranslation,
+      { englishText, yorubaText },
+    );
 
-      if (synthesiseResponse.ok) {
-        const synthesiseData = await synthesiseResponse.json();
-        audioB64 = synthesiseData.audio_b64 ?? null;
-      }
-    } catch {
-      // Synthesis failure is non-fatal. audioB64 stays null and
-      // englishText/yorubaText are still returned.
-      audioB64 = null;
-    }
-
-    await ctx.runMutation(api.mutations.saveTranslation.saveTranslation, {
-      englishText,
+    await ctx.scheduler.runAfter(0, api.actions.synthesise.synthesise, {
+      translationId,
       yorubaText,
     });
 
-    return { englishText, yorubaText, audioB64 };
+    return { translationId, englishText, yorubaText };
   },
 });

@@ -34,7 +34,7 @@
     },
     "plugins": [
       [
-        "expo-av",
+        "expo-audio",
         {
           "microphonePermission": "Allow Àṣà to access your microphone."
         }

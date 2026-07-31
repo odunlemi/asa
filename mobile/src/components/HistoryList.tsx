@@ -1,9 +1,15 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Id } from '../../../app/convex/_generated/dataModel';
 import { tokens, type, cardShadow } from '../constants/theme';
 
-export interface HistoryItem { id: number; en: string; yo: string; audio: string; }
+export interface HistoryItem {
+  _id: Id<'translations'>;
+  englishText: string;
+  yorubaText: string;
+  audioUrl: string | null;
+}
 
 interface Props { items: HistoryItem[]; onSelect: (item: HistoryItem) => void; }
 
@@ -23,7 +29,7 @@ function HistoryRow({ item, onSelect }: { item: HistoryItem; onSelect: (i: Histo
     <View>
       <TouchableOpacity style={styles.row} onPress={toggle} activeOpacity={0.7}>
         <MaterialCommunityIcons name="history" size={15} color={tokens.textMuted} />
-        <Text style={styles.enText} numberOfLines={1}>{item.en}</Text>
+        <Text style={styles.enText} numberOfLines={1}>{item.englishText}</Text>
         <Animated.View style={{ transform: [{ rotate: chevronDeg }] }}>
           <MaterialCommunityIcons name="chevron-down" size={18} color={tokens.textMuted} />
         </Animated.View>
@@ -31,7 +37,7 @@ function HistoryRow({ item, onSelect }: { item: HistoryItem; onSelect: (i: Histo
 
       {open && (
         <View style={styles.expanded}>
-          <Text style={styles.yoText}>{item.yo}</Text>
+          <Text style={styles.yoText}>{item.yorubaText}</Text>
           <TouchableOpacity style={styles.loadBtn} onPress={() => onSelect(item)} activeOpacity={0.8}>
             <MaterialCommunityIcons name="reload" size={13} color={tokens.pillYoText} />
             <Text style={styles.loadText}>Load</Text>
@@ -50,7 +56,7 @@ export function HistoryList({ items, onSelect }: Props) {
       <Text style={styles.heading}>RECENT</Text>
       <View style={styles.card}>
         {items.map((item, index) => (
-          <View key={item.id}>
+          <View key={item._id}>
             <HistoryRow item={item} onSelect={onSelect} />
             {index < items.length - 1 && <View style={styles.divider} />}
           </View>
