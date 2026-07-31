@@ -23,6 +23,11 @@ export const tokens = {
     border: '#2A2218',
     borderSubtle: '#221C14',
 
+    // Glass surfaces: the blur samples the content behind, so these sit on top
+    // of it as a tint rather than an opaque fill.
+    glassFill: 'rgba(21, 17, 12, 0.55)',
+    glassHairline: 'rgba(246, 241, 231, 0.10)',
+
     pillEnBg: '#272A55',
     pillEnText: '#A8ACEE',
     pillYoBg: '#3D2C14',
