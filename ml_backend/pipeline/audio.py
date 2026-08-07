@@ -17,6 +17,9 @@ def tensor_to_b64_wav(waveform, sample_rate: int) -> str:
     if audio.ndim == 2:
         audio = audio[0]
 
+    if not np.isfinite(audio).all():
+        raise ValueError("TTS output contains NaN/Inf; refusing to encode audio.")
+
     audio = np.clip(audio, -1.0, 1.0)
     pcm = (audio * 32767).astype(np.int16)
 

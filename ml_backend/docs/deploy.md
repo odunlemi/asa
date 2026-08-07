@@ -69,28 +69,38 @@ npx convex env set ML_BACKEND_URL https://<your-workspace>--asa-backend-fastapi-
 
 ## Important note on local testing
 
-The 1B OuteTTS model does not run reliably on memory-constrained local
-machines (under 8GB RAM gets OOM-killed once NLLB-200 is also loaded).
-Modal's T4 GPU instance has 16GB VRAM and handles the 1B model
-comfortably, so TTS is tested directly on Modal rather than locally.
+The production translation model is `Davlan/m2m100_418M-eng-yor-mt`
+(~418M params) and the production TTS model is `Shinzmann/soro-tts-yor`
+(~40M params). Both fit comfortably in a local CPU environment, so the
+full `/translate` and `/synthesise` paths can be tested locally via
+uvicorn before deploying to Modal.
 
-`/transcribe` and `/translate` remain fully testable locally via uvicorn.
-`/synthesise` and `/transcribe-url` are tested only after deployment,
-since `orchestrate` calls a single ML_BACKEND_URL for all stages.
+`/synthesise` now expects Yoruba text (with diacritics for best
+prosody). A quick local test:
+
+```bash
+python - <<'PY'
+import requests
+r = requests.post("http://localhost:8000/translate", json={"text": "Hello, how are you today?"})
+print(r.json()["yoruba"])
+PY
+```
+
+```bash
+curl -X POST http://localhost:8000/synthesise \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Ẹ ǹlẹ́ o, báwo lẹ ṣe rí lónìí?"}'
+```
+
+`/transcribe` and `/transcribe-url` still require an AssemblyAI API key
+and are tested directly on Modal if you don't have one locally.
 
 ## Important note on language support
 
-The base OuteTTS-0.2-500M model supports English, Chinese, Japanese, and
-Korean. Yoruba is not currently supported by the base model. Audio
-synthesised from Yoruba text right now will not be correct Yoruba speech.
-
-Real Yoruba output depends on the fine-tuned checkpoint from Feature 5.
-Until that lands, test this endpoint with English text to confirm the
-pipeline mechanics (model load, generation, base64 encoding, Modal
-deploy) work end to end.
-
-```bash
-curl -X POST https://<your-endpoint>/synthesise \
-  -H "Content-Type: application/json" \
-  -d '{"text": "Hello, how are you?"}'
-```
+- Translation: English (`en`) → Yoruba (`yo`) via a general-domain
+  M2M100 fine-tune.
+- TTS: Yoruba text → speech via the `soro-tts-yor` VITS checkpoint.
+  Inputs with tone marks/subdots produce the best prosody.
+- `m2m100_418M-eng-yor-mt` is a fine-tune of `facebook/m2m100_418M`,
+  which is MIT-licensed; `Shinzmann/soro-tts-yor` is a fine-tune of
+  `facebook/mms-tts-yor` and is CC-BY-NC 4.0.
