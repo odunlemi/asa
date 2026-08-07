@@ -1,3 +1,6 @@
+# Experimental OuteTTS-1.0-1B fine-tuning recipe. The production Asa backend
+# uses Davlan/m2m100_418M-eng-yor-mt for translation and Shinzmann/soro-tts-yor
+# for text-to-speech; these settings are kept for future OuteTTS research runs.
 MODEL_ID = "OuteAI/Llama-OuteTTS-1.0-1B"
 OUTPUT_REPO = "abiodun-longe/outetts-yoruba-1b"
 
@@ -26,4 +29,6 @@ MAX_TRAINING_HOURS = 8.0
 MAX_SAMPLES = None  # set at runtime once average clip length is known
 
 CHECKPOINT_DIR = "checkpoints"
-CHECKPOINT_EVERY_N_STEPS = 200
+# Lowered from 200: 100 costs little extra (a few MB per save) and roughly
+# halves the exposure to the same failure mode.
+CHECKPOINT_EVERY_N_STEPS = 100

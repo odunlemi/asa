@@ -1,3 +1,10 @@
+"""QLoRA fine-tuning recipe for the OuteTTS-1.0-1B Yoruba adapter.
+
+Note: this is an experimental/research training recipe. The production Asa
+backend uses Davlan/m2m100_418M-eng-yor-mt for English->Yoruba translation
+and Shinzmann/soro-tts-yor for text-to-speech. Keep this script for future
+OuteTTS experiments; it is not on the live inference path.
+"""
 import os
 import tempfile
 
@@ -52,6 +59,50 @@ def get_hf_token() -> str:
                 "HF_TOKEN, or export it as an environment variable."
             )
         return token
+
+
+def _setup_whisper_cache():
+    """Cache Whisper model loads inside OuteTTS's create_speaker().
+
+    OuteTTS calls whisper.load_model() once per training sample. Caching
+    the returned model by (name, device) keeps the dataset build from
+    spending ~10-15s per sample re-loading the same checkpoint.
+    """
+    import whisper
+
+    if getattr(whisper, "_asa_cache_patched", False):
+        return
+
+    whisper._asa_original_load_model = whisper.load_model
+    _cache = {}
+
+    def _cached_load_model(name, device=None, **kwargs):
+        key = (name, device)
+        if key not in _cache:
+            _cache[key] = whisper._asa_original_load_model(name, device=device, **kwargs)
+        return _cache[key]
+
+    whisper.load_model = _cached_load_model
+    whisper._asa_whisper_cache = _cache
+    whisper._asa_cache_patched = True
+
+
+def _release_whisper_cache():
+    """Clear cached Whisper weights and free GPU memory before training."""
+    try:
+        import whisper
+    except ImportError:
+        return
+
+    cache = getattr(whisper, "_asa_whisper_cache", None)
+    if cache is not None:
+        cache.clear()
+        del cache
+    for attr in ("_asa_whisper_cache", "_asa_original_load_model", "_asa_cache_patched"):
+        if hasattr(whisper, attr):
+            delattr(whisper, attr)
+
+    torch.cuda.empty_cache()
 
 
 class YorubaSpeakerDataset(Dataset):
@@ -168,6 +219,10 @@ def load_qlora_model(model_id: str, hf_token: str):
 
 
 def train():
+    # Cache Whisper loads before OuteTTS is imported; its speaker creation
+    # re-loads Whisper for every sample otherwise.
+    _setup_whisper_cache()
+
     import outetts
 
     hf_token = get_hf_token()
@@ -197,6 +252,12 @@ def train():
     raw_samples = load_yoruba_subset()
     train_dataset = YorubaSpeakerDataset(raw_samples, interface, tokenizer)
     print(f"Prepared {len(train_dataset)} training prompts.")
+
+    # Prompt building is complete; release the OuteTTS interface and
+    # cached Whisper weights so the LLM can claim the GPU memory.
+    train_dataset._interface = None
+    del interface
+    _release_whisper_cache()
 
     loader = DataLoader(
         train_dataset,
