@@ -26,4 +26,6 @@ MAX_TRAINING_HOURS = 8.0
 MAX_SAMPLES = None  # set at runtime once average clip length is known
 
 CHECKPOINT_DIR = "checkpoints"
-CHECKPOINT_EVERY_N_STEPS = 200
+# Lowered from 200: 100 costs little extra (a few MB per save) and roughly
+# halves the exposure to the same failure mode.
+CHECKPOINT_EVERY_N_STEPS = 100
