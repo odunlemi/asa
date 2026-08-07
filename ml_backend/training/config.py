@@ -1,3 +1,6 @@
+# Experimental OuteTTS-1.0-1B fine-tuning recipe. The production Asa backend
+# uses Davlan/m2m100_418M-eng-yor-mt for translation and Shinzmann/soro-tts-yor
+# for text-to-speech; these settings are kept for future OuteTTS research runs.
 MODEL_ID = "OuteAI/Llama-OuteTTS-1.0-1B"
 OUTPUT_REPO = "abiodun-longe/outetts-yoruba-1b"
 

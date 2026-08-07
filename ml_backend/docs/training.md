@@ -1,4 +1,10 @@
-# Training the Yoruba fine-tune
+# Training the experimental OuteTTS Yoruba fine-tune
+
+> **Note:** This guide documents an experimental/research OuteTTS-1.0-1B
+> fine-tuning pipeline. The production Asa backend uses
+> `Davlan/m2m100_418M-eng-yor-mt` for English→Yoruba translation and
+> `Shinzmann/soro-tts-yor` for text-to-speech. Keep this recipe for future
+> OuteTTS experiments.
 
 Two environments are used: Kaggle for cheap, fast iteration on a small
 data slice, and Modal for the real multi-hour run. Don't run the full
@@ -62,7 +68,7 @@ the volume first:
 
 ```
 modal volume create asa-checkpoints
-modal volume put asa-checkpoints /path/to/step-400 checkpoints/step-400
+modal volume put asa-checkpoints /path/to/step-400 step-400
 ```
 
 **Known issue:** this was tested once and didn't work as expected, the

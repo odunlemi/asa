@@ -1,3 +1,6 @@
+# Experimental OuteTTS-1.0-1B Yoruba fine-tuning data loader. The production Asa
+# backend uses Davlan/m2m100_418M-eng-yor-mt and Shinzmann/soro-tts-yor; this
+# loader is kept for future OuteTTS research runs.
 from datasets import load_dataset
 
 from training.config import MAX_TRAINING_HOURS
