@@ -81,26 +81,24 @@
       backdrop-filter: blur(12px);
       background: rgba(21, 17, 12, 0.72);
     }
-    .nav {
-      display: flex;
+    .header-inner {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      grid-template-areas: "wordmark nav icon";
       align-items: center;
-      justify-content: flex-start;
-      gap: 12px;
-      flex-wrap: wrap;
+      gap: 16px 24px;
     }
     .wordmark {
+      grid-area: wordmark;
       font-family: 'Ojuju', sans-serif;
       font-size: 1.7rem;
       font-weight: 700;
       color: var(--accent);
       text-decoration: none;
     }
-    .nav-group {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-      flex-wrap: nowrap;
-      margin-left: auto;
+    .header-nav {
+      grid-area: nav;
+      justify-self: center;
     }
     .nav-links {
       display: flex;
@@ -111,10 +109,17 @@
       padding: 0;
       font-size: 0.88rem;
       font-weight: 500;
+      flex-wrap: wrap;
     }
     .nav-links a { color: var(--muted); text-decoration: none; }
     .nav-links a:hover { color: var(--accent); }
-    .github-icon { display: flex; align-items: center; color: var(--muted); }
+    .github-icon {
+      grid-area: icon;
+      display: flex;
+      align-items: center;
+      justify-self: end;
+      color: var(--muted);
+    }
     .github-icon:hover { color: var(--accent); }
 
     /* Hero */
@@ -208,9 +213,14 @@
     }
     .site-footer p { margin: 0; color: var(--muted); }
 
-    @media (max-width: 600px) {
-      .nav { align-items: center; }
-      .nav-group { gap: 14px; }
+    @media (max-width: 720px) {
+      .header-inner {
+        grid-template-columns: auto auto;
+        grid-template-areas:
+          "wordmark icon"
+          "nav nav";
+      }
+      .header-nav { justify-self: start; }
       .nav-links { gap: 14px; }
       .hero { padding-block: 80px 56px; }
       section { padding-block: 64px; }
@@ -220,23 +230,21 @@
 </head>
 <body>
   <header class="site-header">
-    <div class="container nav">
+    <div class="container header-inner">
       <a class="wordmark" href="#">Àṣà</a>
-      <div class="nav-group">
-        <nav>
-          <ul class="nav-links">
-            <li><a href="#overview">Overview</a></li>
-            <li><a href="#pipeline">Pipeline</a></li>
-            <li><a href="#stack">Stack</a></li>
-            <li><a href="#downloads">Downloads</a></li>
-            <li><a href="#report">Report</a></li>
-            <li><a href="#license">License</a></li>
-          </ul>
-        </nav>
-        <a class="github-icon" href="https://github.com/odunlemi/asa" target="_blank" rel="noopener" aria-label="GitHub">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.38.6.11.82-.26.82-.58v-2.03c-3.34.72-4.04-1.61-4.04-1.61-.55-1.39-1.33-1.76-1.33-1.76-1.09-.74.08-.73.08-.73 1.2.09 1.84 1.24 1.84 1.24 1.07 1.83 2.8 1.3 3.49 1 .1-.78.42-1.3.76-1.6-2.67-.3-5.47-1.34-5.47-5.97 0-1.32.47-2.4 1.24-3.24-.13-.3-.54-1.52.12-3.17 0 0 1-.32 3.3 1.24a11.5 11.5 0 0 1 6 0c2.28-1.56 3.29-1.24 3.29-1.24.66 1.65.24 2.87.12 3.17.77.84 1.24 1.92 1.24 3.24 0 4.64-2.8 5.66-5.48 5.96.43.37.82 1.1.82 2.22v3.29c0 .32.22.7.82.58C20.56 21.8 24 17.3 24 12c0-6.63-5.37-12-12-12z"/></svg>
-        </a>
-      </div>
+      <nav class="header-nav">
+        <ul class="nav-links">
+          <li><a href="#overview">Overview</a></li>
+          <li><a href="#pipeline">Pipeline</a></li>
+          <li><a href="#stack">Stack</a></li>
+          <li><a href="#downloads">Downloads</a></li>
+          <li><a href="#report">Report</a></li>
+          <li><a href="#license">License</a></li>
+        </ul>
+      </nav>
+      <a class="github-icon" href="https://github.com/odunlemi/asa" target="_blank" rel="noopener" aria-label="GitHub">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.38.6.11.82-.26.82-.58v-2.03c-3.34.72-4.04-1.61-4.04-1.61-.55-1.39-1.33-1.76-1.33-1.76-1.09-.74.08-.73.08-.73 1.2.09 1.84 1.24 1.84 1.24 1.07 1.83 2.8 1.3 3.49 1 .1-.78.42-1.3.76-1.6-2.67-.3-5.47-1.34-5.47-5.97 0-1.32.47-2.4 1.24-3.24-.13-.3-.54-1.52.12-3.17 0 0 1-.32 3.3 1.24a11.5 11.5 0 0 1 6 0c2.28-1.56 3.29-1.24 3.29-1.24.66 1.65.24 2.87.12 3.17.77.84 1.24 1.92 1.24 3.24 0 4.64-2.8 5.66-5.48 5.96.43.37.82 1.1.82 2.22v3.29c0 .32.22.7.82.58C20.56 21.8 24 17.3 24 12c0-6.63-5.37-12-12-12z"/></svg>
+      </a>
     </div>
   </header>
 
