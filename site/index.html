@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Àṣà — English to Yoruba Speech-to-Speech Translation</title>
-  <meta name="description" content="Asa is an open-source, real-time English to Yoruba speech-to-speech translation app. Speak in English, hear Yoruba.">
-  <meta property="og:title" content="Àṣà — English to Yoruba Speech-to-Speech Translation">
-  <meta property="og:description" content="Speak in English, hear Yoruba. Real-time translation powered by open models.">
+  <title>Àṣà — English-to-Yoruba Speech-to-Speech Translation</title>
+  <meta name="description" content="Àṣà is a real-time English-to-Yoruba speech-to-speech translation system built with open models.">
+  <meta property="og:title" content="Àṣà — English-to-Yoruba Speech-to-Speech Translation">
+  <meta property="og:description" content="Real-time English-to-Yoruba speech-to-speech translation using open models.">
   <meta property="og:image" content="https://odunlemi.github.io/asa/site/assets/splash-icon.png">
   <meta property="og:type" content="website">
   <link rel="icon" type="image/png" href="assets/favicon.png">
@@ -16,26 +16,15 @@
   <style>
     :root {
       --bg: #FFFFFF;
-      --bgCard: #FAF8F5;
-      --bgCardEn: #EEF0FF;
-      --bgCardYo: #FFF6E8;
-      --textPrimary: #15110C;
+      --text: #15110C;
       --textBody: #3B342A;
-      --textSecondary: #5C5348;
-      --textMuted: #7D7266;
-      --accentGold: #B07D1B;
-      --accentGoldLight: #D6A24B;
-      --accentGoldPale: #E8B65C;
-      --accentIndigo: #5A5F9E;
-      --accentAmber: #B86A28;
+      --muted: #6B6258;
+      --accent: #B07D1B;
+      --accentLight: #D6A24B;
+      --indigo: #4F55A0;
       --border: #E8E1D6;
-      --borderSubtle: #F5F0E9;
-      --glassFill: rgba(255, 255, 255, 0.85);
-      --glassHairline: rgba(21, 17, 12, 0.08);
-      --radius: 20px;
-      --radiusSm: 14px;
-      --container: 1080px;
-      --ease: cubic-bezier(0.22, 1, 0.36, 1);
+      --prose: 700px;
+      --radius: 10px;
     }
 
     * { box-sizing: border-box; }
@@ -46,280 +35,163 @@
       margin: 0;
       font-family: 'Hanken Grotesk', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       background: var(--bg);
-      color: var(--textPrimary);
-      line-height: 1.6;
+      color: var(--text);
+      line-height: 1.65;
       -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
     }
 
-    h1, h2, h3, .wordmark {
+    h1, h2, h3 {
       font-family: 'Ojuju', 'Hanken Grotesk', sans-serif;
       font-weight: 700;
-      line-height: 1.1;
+      line-height: 1.2;
       margin: 0 0 0.5em;
-      color: var(--textPrimary);
+      color: var(--text);
     }
 
-    h1 { font-size: clamp(3.2rem, 9vw, 6.5rem); color: var(--accentGold); }
-    h2 { font-size: clamp(1.8rem, 4vw, 2.6rem); }
-    h3 { font-size: 1.35rem; color: var(--textPrimary); }
+    h1 { font-size: clamp(2.6rem, 6vw, 4rem); color: var(--accent); }
+    h2 { font-size: clamp(1.4rem, 3vw, 1.8rem); margin-top: 0; }
+    h3 { font-size: 1.1rem; }
 
-    .wordmark { color: var(--accentGold); }
+    p, li { color: var(--textBody); }
 
-    p { margin: 0 0 1em; color: var(--textBody); }
-
-    a { color: var(--accentGold); text-decoration: none; }
-    a:hover { text-decoration: underline; }
+    a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+    a:hover { color: var(--text); }
 
     code {
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-size: 0.9em;
-      background: rgba(21, 17, 12, 0.06);
+      font-size: 0.88em;
+      background: rgba(21, 17, 12, 0.05);
       padding: 1px 5px;
-      border-radius: 6px;
-      color: var(--textPrimary);
+      border-radius: 4px;
+      color: var(--text);
     }
 
     .container {
-      width: min(100% - 40px, var(--container));
+      width: min(100% - 48px, var(--prose));
       margin-inline: auto;
     }
 
     /* Header */
     .site-header {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      backdrop-filter: blur(14px);
-      background: var(--glassFill);
-      border-bottom: 1px solid var(--glassHairline);
+      border-bottom: 1px solid var(--border);
+      padding-block: 16px;
     }
     .nav {
       display: flex;
-      align-items: center;
+      align-items: baseline;
       justify-content: space-between;
-      padding-block: 14px;
+      gap: 24px;
+      flex-wrap: wrap;
     }
-    .wordmark { font-size: 1.8rem; margin: 0; }
+    .wordmark {
+      font-family: 'Ojuju', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-decoration: none;
+    }
     .nav-links {
       display: flex;
-      gap: 22px;
+      gap: 20px;
       list-style: none;
       margin: 0;
       padding: 0;
-      font-size: 0.92rem;
-      font-weight: 600;
-    }
-    .nav-links a { color: var(--textSecondary); }
-    .nav-links a:hover { color: var(--accentGold); }
-
-    /* Buttons */
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      padding: 13px 22px;
-      border-radius: var(--radiusSm);
-      font-weight: 600;
-      border: 1px solid transparent;
-      transition: transform .2s var(--ease), background .2s var(--ease), border-color .2s var(--ease);
-    }
-    .btn:hover { transform: translateY(-1px); text-decoration: none; }
-    .btn-primary {
-      background: var(--accentGold);
-      color: var(--bg);
-      border-color: var(--accentGold);
-    }
-    .btn-primary:hover { background: var(--accentGoldLight); border-color: var(--accentGoldLight); }
-    .btn-primary:disabled {
-      opacity: 0.45;
-      cursor: not-allowed;
-      background: var(--accentGoldLight);
-      border-color: var(--accentGoldLight);
-    }
-    .btn-ghost {
-      background: transparent;
-      color: var(--textPrimary);
-      border-color: var(--border);
-    }
-    .btn-ghost:hover { border-color: var(--accentGold); color: var(--accentGold); }
-    .btn-store {
-      background: rgba(21, 17, 12, 0.04);
-      color: var(--textPrimary);
-      border-color: var(--border);
-      min-width: 180px;
-    }
-    .btn-store:hover { border-color: var(--accentGold); color: var(--accentGold); }
-    .btn-store:disabled {
-      opacity: 0.45;
-      cursor: not-allowed;
-      border-color: var(--border);
-      color: var(--textSecondary);
-    }
-    .btn-store:disabled:hover { transform: none; }
-
-    /* Hero */
-    .hero {
-      text-align: center;
-      padding-block: 80px 60px;
-      position: relative;
-      overflow: hidden;
-    }
-    .hero-logo {
-      width: 140px;
-      height: 140px;
-      border-radius: 28px;
-      object-fit: cover;
-      margin-bottom: 28px;
-      background: #15110C;
-      border: 1px solid var(--border);
-      box-shadow: 0 20px 60px rgba(0,0,0,0.12);
-    }
-    .tagline {
-      font-size: clamp(1.15rem, 2.2vw, 1.5rem);
-      color: var(--textSecondary);
-      max-width: 560px;
-      margin: 0 auto 18px;
-    }
-    .hero-body {
-      color: var(--textMuted);
-      max-width: 520px;
-      margin: 0 auto 32px;
-    }
-    .hero-actions {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 14px;
-      margin-bottom: 14px;
-    }
-    .hero-note {
-      font-size: 0.85rem;
-      color: var(--textMuted);
-    }
-
-    /* Sections */
-    .section { padding-block: 72px; }
-    .section:nth-child(even) { background: #F9F7F3; }
-    .section h2 { margin-bottom: 14px; }
-    .section-intro {
-      color: var(--textMuted);
-      max-width: 620px;
-      margin-bottom: 36px;
-    }
-
-    /* Cards / Grids */
-    .grid {
-      display: grid;
-      gap: 18px;
-    }
-    .grid-4 { grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
-    .grid-3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
-    .card {
-      background: var(--bgCard);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 24px;
-    }
-    .card h3 { margin-top: 0; margin-bottom: 10px; }
-    .card p { margin: 0; color: var(--textSecondary); font-size: 0.97rem; }
-    .card-icon {
-      width: 44px;
-      height: 44px;
-      display: grid;
-      place-items: center;
-      border-radius: 12px;
-      background: rgba(21, 17, 12, 0.05);
-      color: var(--accentGold);
-      margin-bottom: 16px;
-      border: 1px solid var(--glassHairline);
-    }
-    .card-accent-en { background: var(--bgCardEn); border-color: rgba(90, 95, 158, 0.18); }
-    .card-accent-yo { background: var(--bgCardYo); border-color: rgba(176, 125, 27, 0.22); }
-
-    /* Pipeline */
-    .pipeline-step .step-number {
-      font-family: 'Ojuju', sans-serif;
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: var(--accentGold);
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      margin-bottom: 10px;
-    }
-
-    /* Stack */
-    .stack-category h3 {
-      color: var(--textPrimary);
-      font-size: 1.05rem;
-      margin-bottom: 12px;
-    }
-    .stack-list {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      list-style: none;
-      margin: 0;
-      padding: 0;
-    }
-    .stack-list li {
-      background: rgba(21, 17, 12, 0.04);
-      border: 1px solid var(--border);
-      color: var(--textSecondary);
-      padding: 6px 12px;
-      border-radius: 999px;
       font-size: 0.9rem;
       font-weight: 500;
     }
+    .nav-links a { color: var(--muted); text-decoration: none; }
+    .nav-links a:hover { color: var(--accent); text-decoration: underline; }
 
-    /* Credits */
-    .credit-grid { margin-bottom: 48px; }
-    .credit-source {
-      display: block;
-      font-size: 0.8rem;
-      color: var(--textMuted);
-      margin-top: 8px;
+    /* Hero */
+    .hero {
+      padding-block: 80px 60px;
     }
-    .license-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 24px 0 16px;
+    .subtitle {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      margin: 0 0 10px;
+    }
+    .abstract {
+      font-size: 1.05rem;
+      color: var(--textBody);
+      margin-bottom: 1.2em;
+    }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 20px;
+      align-items: center;
+      margin-top: 28px;
       font-size: 0.95rem;
     }
-    .license-table th,
-    .license-table td {
-      padding: 14px 16px;
-      text-align: left;
+    .actions a { font-weight: 600; }
+    .muted { color: var(--muted); }
+    .placeholder {
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    /* Sections */
+    section { padding-block: 56px; }
+    section + section { border-top: 1px solid var(--border); }
+
+    .prose h2 { margin-bottom: 14px; }
+    .prose p, .prose ul, .prose ol { margin-top: 0; margin-bottom: 1em; }
+    .prose ul, .prose ol { padding-left: 1.4em; }
+    .prose li { margin-bottom: 0.4em; }
+
+    /* Stack list */
+    .stack-list {
+      list-style: none;
+      padding: 0;
+    }
+    .stack-list li {
+      padding: 8px 0;
       border-bottom: 1px solid var(--border);
     }
-    .license-table th {
-      color: var(--textPrimary);
-      font-weight: 600;
-      background: rgba(21, 17, 12, 0.04);
+    .stack-list li:last-child { border-bottom: none; }
+    .stack-list strong { color: var(--text); }
+
+    /* Table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 18px 0 1em;
+      font-size: 0.92rem;
     }
-    .license-table td { color: var(--textSecondary); }
-    .license-table tr:last-child th,
-    .license-table tr:last-child td { border-bottom: none; }
+    th, td {
+      padding: 12px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    th {
+      font-weight: 600;
+      color: var(--text);
+      background: rgba(21, 17, 12, 0.03);
+    }
+    td { color: var(--textBody); }
+    tr:last-child th, tr:last-child td { border-bottom: none; }
 
     /* Footer */
     .site-footer {
+      padding-block: 40px 56px;
+      border-top: 1px solid var(--border);
       text-align: center;
-      padding-block: 48px 56px;
-      border-top: 1px solid var(--borderSubtle);
-      color: var(--textMuted);
-      font-size: 0.92rem;
+      font-size: 0.9rem;
+      color: var(--muted);
     }
-    .site-footer p { margin: 0 0 6px; color: var(--textMuted); }
+    .site-footer p { margin: 0; color: var(--muted); }
 
-    .muted { color: var(--textMuted); }
-
-    /* Mobile */
-    @media (max-width: 640px) {
-      .nav-links { display: none; }
-      .hero { padding-block: 52px 44px; }
-      .section { padding-block: 52px; }
-      .btn { width: 100%; }
+    @media (max-width: 600px) {
+      .nav { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .nav-links { gap: 14px; }
+      .hero { padding-block: 48px 40px; }
+      section { padding-block: 44px; }
+      th, td { padding: 10px 8px; }
     }
   </style>
 </head>
@@ -329,11 +201,12 @@
       <a class="wordmark" href="#">Àṣà</a>
       <nav>
         <ul class="nav-links">
-          <li><a href="#about">About</a></li>
-          <li><a href="#how-it-works">How it works</a></li>
+          <li><a href="#overview">Overview</a></li>
+          <li><a href="#pipeline">Pipeline</a></li>
           <li><a href="#stack">Stack</a></li>
+          <li><a href="#downloads">Downloads</a></li>
           <li><a href="#report">Report</a></li>
-          <li><a href="#credits">Credits</a></li>
+          <li><a href="#license">License</a></li>
         </ul>
       </nav>
     </div>
@@ -342,186 +215,135 @@
   <main>
     <section class="hero">
       <div class="container">
-        <img src="assets/icon.png" alt="Àṣà logo" class="hero-logo">
+        <p class="subtitle">English-to-Yoruba Speech-to-Speech Translation</p>
         <h1>Àṣà</h1>
-        <p class="tagline">English to Yoruba speech-to-speech translation, in your pocket.</p>
-        <p class="hero-body">Speak naturally in English and hear fluent Yoruba — in real time. Built with open models, a cloud ML pipeline, and a mobile-first React&nbsp;Native&nbsp;app.</p>
-        <div class="hero-actions">
-          <button class="btn btn-store" disabled>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C2.31 15.92 3.27 9.05 7.83 8.74c1.21-.07 2.37.84 3.12.84.76 0 2.19-1.05 3.69-.9.63.03 2.39.25 3.52 1.91-.09.06-2.1 1.22-2.08 3.65.02 2.89 2.53 3.85 2.58 3.86-.03.11-.4 1.36-1.18 2.75M13 3.5c.66-.81 1.11-1.94.99-3.06-1.04.05-2.29.69-3.02 1.55-.61.71-1.14 1.84-1 2.98 1.16.09 2.34-.65 3.03-1.47z"/></svg>
-            App Store
-          </button>
-          <button class="btn btn-store" disabled>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 20.5v-17c0-.59.34-1.11.84-1.35L13.69 12l-9.85 9.85c-.5-.24-.84-.76-.84-1.35m15.49-6.31L6.29 3.09l9.85 9.9 2.35-1.3m-4.7-2.61l4.15-2.31c.61-.34 1.36-.34 1.97 0l4.15 2.31c.63.35.63 1.28 0 1.63l-4.15 2.31-4.15-2.31c-.61-.35-.61-1.28 0-1.63M3.84 2.47A1.5 1.5 0 0 0 3 3.8v16.4c0 .54.28 1.02.72 1.29l9.94-9.94L3.84 2.47Z"/></svg>
-            Google Play
-          </button>
-          <a class="btn btn-ghost" href="https://github.com/odunlemi/asa" target="_blank" rel="noopener">View on GitHub</a>
-        </div>
-        <p class="hero-note">Mobile downloads coming soon.</p>
-      </div>
-    </section>
-
-    <section class="section" id="about">
-      <div class="container">
-        <h2>What is Àṣà?</h2>
-        <p class="section-intro">Àṣà is a real-time English to Yoruba speech-to-speech translation system. It lets you hold a conversation in English and listen to the response in Yoruba — preserving tone, prosody, and the natural rhythm of the language.</p>
-        <div class="grid grid-3">
-          <div class="card">
-            <h3>Real-time conversations</h3>
-            <p>Tap record, speak in English, and get back spoken Yoruba without typing or switching apps.</p>
-          </div>
-          <div class="card">
-            <h3>Built for mobile</h3>
-            <p>A clean, glass-native React Native interface designed for phones first — with history, audio playback, and status at a glance.</p>
-          </div>
-          <div class="card">
-            <h3>Open models, open code</h3>
-            <p>The backend uses open weights and a FastAPI service; the mobile app and Convex orchestration are open source on GitHub.</p>
-          </div>
+        <p class="abstract">Àṣà is a real-time speech-to-speech translation system for English and Yoruba. It combines a mobile React Native client, a Convex orchestration backend, and a Modal-hosted FastAPI service for transcription, neural machine translation, and text-to-speech synthesis.</p>
+        <p class="abstract">Source code and documentation are available on GitHub. Mobile builds and a technical report will be linked when ready.</p>
+        <div class="actions">
+          <a href="https://github.com/odunlemi/asa" target="_blank" rel="noopener">Source on GitHub</a>
+          <span class="muted">·</span>
+          <a href="#downloads">Downloads</a>
+          <span class="muted">·</span>
+          <a href="#report">Report</a>
         </div>
       </div>
     </section>
 
-    <section class="section" id="how-it-works">
-      <div class="container">
-        <h2>How it works</h2>
-        <p class="section-intro">The app records your voice, then a Convex action coordinates transcription, translation, and synthesis through the ML backend.</p>
-        <div class="grid grid-4 pipeline">
-          <article class="card pipeline-step">
-            <div class="card-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg></div>
-            <p class="step-number">Step 1</p>
-            <h3>Speak English</h3>
-            <p>Tap the record button in the app and speak naturally. Audio is uploaded to Convex storage.</p>
-          </article>
-          <article class="card pipeline-step card-accent-en">
-            <div class="card-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg></div>
-            <p class="step-number">Step 2</p>
-            <h3>Transcribe</h3>
-            <p>AssemblyAI converts the English audio into text with a signed URL from Convex.</p>
-          </article>
-          <article class="card pipeline-step card-accent-yo">
-            <div class="card-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
-            <p class="step-number">Step 3</p>
-            <h3>Translate</h3>
-            <p>The <code>Davlan/m2m100_418M-eng-yor-mt</code> model translates the English text into Yoruba.</p>
-          </article>
-          <article class="card pipeline-step">
-            <div class="card-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg></div>
-            <p class="step-number">Step 4</p>
-            <h3>Listen</h3>
-            <p><code>Shinzmann/soro-tts-yor</code> synthesizes Yoruba speech, and the app plays it back.</p>
-          </article>
-        </div>
+    <section id="overview">
+      <div class="container prose">
+        <h2>Overview</h2>
+        <p>Àṣà enables end-to-end spoken translation from English to Yoruba. A user records English speech in the mobile app; the system transcribes the audio, translates the text into Yoruba, synthesizes Yoruba speech, and plays it back. Translation text is returned as soon as it is ready, while audio synthesis runs asynchronously to keep response latency low.</p>
+
+        <h3>Key features</h3>
+        <ul>
+          <li>End-to-end speech-to-speech pipeline</li>
+          <li>Mobile-first React Native interface with translation history and audio playback</li>
+          <li>Open-weight translation and text-to-speech models</li>
+          <li>Convex actions for coordination and Modal for GPU inference</li>
+        </ul>
       </div>
     </section>
 
-    <section class="section" id="stack">
-      <div class="container">
-        <h2>Stack</h2>
-        <p class="section-intro">Àṣà combines a React Native mobile app, a Convex backend, and a GPU-backed FastAPI service on Modal.</p>
-        <div class="grid grid-4">
-          <div class="card stack-category">
-            <h3>Mobile</h3>
-            <ul class="stack-list">
-              <li>React Native</li>
-              <li>Expo SDK 54</li>
-              <li>Convex React</li>
-            </ul>
-          </div>
-          <div class="card stack-category">
-            <h3>Backend & infra</h3>
-            <ul class="stack-list">
-              <li>Convex</li>
-              <li>Modal</li>
-              <li>FastAPI</li>
-              <li>Uvicorn</li>
-            </ul>
-          </div>
-          <div class="card stack-category">
-            <h3>ML & audio</h3>
-            <ul class="stack-list">
-              <li>PyTorch</li>
-              <li>Hugging Face Transformers</li>
-              <li>VITS</li>
-              <li>M2M100</li>
-              <li>AssemblyAI</li>
-            </ul>
-          </div>
-          <div class="card stack-category">
-            <h3>Design & data</h3>
-            <ul class="stack-list">
-              <li>Ojuju</li>
-              <li>Hanken Grotesk</li>
-              <li>NaijaVoices</li>
-            </ul>
-          </div>
-        </div>
+    <section id="pipeline">
+      <div class="container prose">
+        <h2>Pipeline</h2>
+        <ol>
+          <li><strong>Speech recording.</strong> The mobile app records English audio and uploads it to Convex storage.</li>
+          <li><strong>Transcription.</strong> A Convex action generates a signed URL and sends the audio to AssemblyAI for English transcription.</li>
+          <li><strong>Translation.</strong> The English transcript is translated to Yoruba by <code>Davlan/m2m100_418M-eng-yor-mt</code>.</li>
+          <li><strong>Synthesis.</strong> The Yoruba text is passed to <code>Shinzmann/soro-tts-yor</code>, a VITS-based text-to-speech model, to generate audio.</li>
+          <li><strong>Playback.</strong> The synthesized audio is stored in Convex and played back in the app.</li>
+        </ol>
       </div>
     </section>
 
-    <section class="section" id="report">
-      <div class="container" style="text-align:center;">
+    <section id="stack">
+      <div class="container prose">
+        <h2>System stack</h2>
+        <ul class="stack-list">
+          <li><strong>Mobile:</strong> React Native, Expo SDK 54, Convex React</li>
+          <li><strong>Backend & infrastructure:</strong> Convex, Modal, FastAPI, Uvicorn</li>
+          <li><strong>Machine learning & audio:</strong> PyTorch, Hugging Face Transformers, VITS, M2M100, AssemblyAI</li>
+          <li><strong>Training data:</strong> NaijaVoices Yoruba speech dataset</li>
+          <li><strong>Typography:</strong> Ojuju, Hanken Grotesk</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="downloads">
+      <div class="container prose">
+        <h2>Downloads</h2>
+        <p>Mobile applications will be distributed for iOS and Android once builds are finalized. The links below will be updated when the apps are available.</p>
+        <p class="placeholder">App Store (coming soon)<br>Google Play (coming soon)</p>
+      </div>
+    </section>
+
+    <section id="report">
+      <div class="container prose">
         <h2>Technical report</h2>
-        <p class="section-intro" style="margin-inline:auto;">Read the architecture, evaluation, and training notes behind Àṣà.</p>
-        <button class="btn btn-primary" disabled aria-disabled="true">Read the report (link coming soon)</button>
+        <p>The project report covers system architecture, model selection, evaluation, and training experiments.</p>
+        <p class="placeholder">Report link coming soon.</p>
       </div>
     </section>
 
-    <section class="section" id="credits">
-      <div class="container">
-        <h2>Model credits & licenses</h2>
-        <p class="section-intro">Àṣà is built on open models, datasets, and fonts. See the model cards for the exact terms that govern each component.</p>
+    <section id="license">
+      <div class="container prose">
+        <h2>Models, data &amp; licenses</h2>
+        <p>Àṣà builds on the following open models, services, and datasets. Each component retains its original license; refer to the model or dataset card for complete terms.</p>
 
-        <div class="grid grid-3 credit-grid">
-          <div class="card">
-            <h3>Translation</h3>
-            <p><code>Davlan/m2m100_418M-eng-yor-mt</code></p>
-            <span class="credit-source">Fine-tuned from <code>facebook/m2m100_418M</code> · MIT</span>
-          </div>
-          <div class="card card-accent-yo">
-            <h3>Text-to-speech</h3>
-            <p><code>Shinzmann/soro-tts-yor</code></p>
-            <span class="credit-source">Fine-tuned from <code>facebook/mms-tts-yor</code> · CC-BY-NC 4.0</span>
-          </div>
-          <div class="card card-accent-en">
-            <h3>Speech-to-text</h3>
-            <p>AssemblyAI</p>
-            <span class="credit-source">Cloud API · AssemblyAI Terms of Service</span>
-          </div>
-          <div class="card">
-            <h3>Experimental training</h3>
-            <p><code>OuteAI/Llama-OuteTTS-1.0-1B</code></p>
-            <span class="credit-source">Used in research fine-tuning · OuteAI / Llama license</span>
-          </div>
-          <div class="card">
-            <h3>Training data</h3>
-            <p>NaijaVoices</p>
-            <span class="credit-source">Yoruba speech dataset · dataset-specific license</span>
-          </div>
-          <div class="card">
-            <h3>Typography</h3>
-            <p>Ojuju & Hanken Grotesk</p>
-            <span class="credit-source">Google Fonts · SIL Open Font License 1.1</span>
-          </div>
-        </div>
-
-        <h3>License summary</h3>
-        <table class="license-table">
+        <table>
           <thead>
-            <tr><th>Component</th><th>License</th></tr>
+            <tr>
+              <th>Component</th>
+              <th>Use</th>
+              <th>License</th>
+            </tr>
           </thead>
           <tbody>
-            <tr><td><code>Davlan/m2m100_418M-eng-yor-mt</code></td><td>MIT</td></tr>
-            <tr><td><code>facebook/m2m100_418M</code> (base)</td><td>MIT</td></tr>
-            <tr><td><code>Shinzmann/soro-tts-yor</code></td><td>CC-BY-NC 4.0</td></tr>
-            <tr><td><code>facebook/mms-tts-yor</code> (base)</td><td>CC-BY-NC 4.0</td></tr>
-            <tr><td>AssemblyAI API</td><td><a href="https://www.assemblyai.com/legal/terms-of-service" target="_blank" rel="noopener">Terms of Service</a></td></tr>
-            <tr><td><code>OuteAI/Llama-OuteTTS-1.0-1B</code></td><td>OuteAI / Llama model license</td></tr>
-            <tr><td>NaijaVoices dataset</td><td>See Hugging Face dataset card</td></tr>
-            <tr><td>Ojuju & Hanken Grotesk fonts</td><td>SIL Open Font License 1.1</td></tr>
+            <tr>
+              <td><code>Davlan/m2m100_418M-eng-yor-mt</code></td>
+              <td>English to Yoruba translation</td>
+              <td>MIT</td>
+            </tr>
+            <tr>
+              <td><code>facebook/m2m100_418M</code></td>
+              <td>Base translation model</td>
+              <td>MIT</td>
+            </tr>
+            <tr>
+              <td><code>Shinzmann/soro-tts-yor</code></td>
+              <td>Yoruba text-to-speech</td>
+              <td>CC-BY-NC 4.0</td>
+            </tr>
+            <tr>
+              <td><code>facebook/mms-tts-yor</code></td>
+              <td>Base TTS model</td>
+              <td>CC-BY-NC 4.0</td>
+            </tr>
+            <tr>
+              <td>AssemblyAI</td>
+              <td>English speech-to-text</td>
+              <td><a href="https://www.assemblyai.com/legal/terms-of-service" target="_blank" rel="noopener">Terms of Service</a></td>
+            </tr>
+            <tr>
+              <td><code>OuteAI/Llama-OuteTTS-1.0-1B</code></td>
+              <td>Experimental TTS fine-tuning</td>
+              <td>OuteAI / Llama model license</td>
+            </tr>
+            <tr>
+              <td>NaijaVoices</td>
+              <td>Yoruba training data</td>
+              <td>Dataset-specific license</td>
+            </tr>
+            <tr>
+              <td>Ojuju &amp; Hanken Grotesk</td>
+              <td>Typography</td>
+              <td>SIL Open Font License 1.1</td>
+            </tr>
           </tbody>
         </table>
-        <p class="muted">The Àṣà project itself does not yet have an open-source license. Contact the author for usage terms, or open an issue on GitHub.</p>
+
+        <p class="placeholder">The Àṣà project itself does not yet have an open-source license. Contact the author for usage terms.</p>
       </div>
     </section>
   </main>
@@ -529,7 +351,6 @@
   <footer class="site-footer">
     <div class="container">
       <p>Built by <a href="https://github.com/odunlemi" target="_blank" rel="noopener">@odunlemi</a> · Source on <a href="https://github.com/odunlemi/asa" target="_blank" rel="noopener">GitHub</a></p>
-      <p class="muted">© 2026 Àṣà</p>
     </div>
   </footer>
 </body>
