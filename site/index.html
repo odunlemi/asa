@@ -22,9 +22,11 @@
       --accent: #D6A24B;
       --accentLight: #F3D9A0;
       --indigo: #A8ACEE;
+      --surface: rgba(246, 241, 231, 0.04);
+      --hairline: rgba(246, 241, 231, 0.08);
       --border: rgba(214, 162, 75, 0.25);
-      --prose: 700px;
-      --radius: 10px;
+      --prose: 720px;
+      --radius: 16px;
     }
 
     * { box-sizing: border-box; }
@@ -36,7 +38,7 @@
       font-family: 'Hanken Grotesk', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       background: var(--bg);
       color: var(--text);
-      line-height: 1.65;
+      line-height: 1.7;
       -webkit-font-smoothing: antialiased;
     }
 
@@ -44,13 +46,12 @@
       font-family: 'Ojuju', 'Hanken Grotesk', sans-serif;
       font-weight: 700;
       line-height: 1.2;
-      margin: 0 0 0.5em;
+      margin: 0 0 0.6em;
       color: var(--text);
     }
 
-    h1 { font-size: clamp(2.6rem, 6vw, 4rem); color: var(--accent); }
-    h2 { font-size: clamp(1.4rem, 3vw, 1.8rem); margin-top: 0; }
-    h3 { font-size: 1.1rem; }
+    h2 { font-size: clamp(1.4rem, 3.2vw, 1.9rem); }
+    h3 { font-size: 1.05rem; }
 
     p, li { color: var(--textBody); }
 
@@ -60,7 +61,7 @@
     code {
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
       font-size: 0.88em;
-      background: rgba(246, 241, 231, 0.08);
+      background: rgba(246, 241, 231, 0.07);
       padding: 1px 5px;
       border-radius: 4px;
       color: var(--text);
@@ -73,62 +74,76 @@
 
     /* Header */
     .site-header {
-      border-bottom: 1px solid var(--border);
-      padding-block: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding-block: 18px;
+      backdrop-filter: blur(12px);
+      background: rgba(21, 17, 12, 0.72);
     }
     .nav {
       display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: 24px;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 12px;
       flex-wrap: wrap;
     }
     .wordmark {
       font-family: 'Ojuju', sans-serif;
-      font-size: 1.6rem;
+      font-size: 1.7rem;
       font-weight: 700;
       color: var(--accent);
       text-decoration: none;
     }
+    .nav-group {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: nowrap;
+      margin-left: auto;
+    }
     .nav-links {
       display: flex;
+      align-items: center;
       gap: 20px;
       list-style: none;
       margin: 0;
       padding: 0;
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       font-weight: 500;
     }
     .nav-links a { color: var(--muted); text-decoration: none; }
-    .nav-links a:hover { color: var(--accent); text-decoration: underline; }
-    .nav-links .github a { display: flex; align-items: center; }
+    .nav-links a:hover { color: var(--accent); }
+    .github-icon { display: flex; align-items: center; color: var(--muted); }
+    .github-icon:hover { color: var(--accent); }
 
     /* Hero */
     .hero {
-      padding-block: 80px 60px;
+      padding-block: 120px 80px;
     }
     .subtitle {
-      font-size: 1rem;
+      font-size: 0.9rem;
       font-weight: 600;
       color: var(--muted);
-      letter-spacing: 0.02em;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
-      margin: 0 0 10px;
+      margin: 0 0 14px;
     }
     .abstract {
-      font-size: 1.05rem;
+      font-size: 1.1rem;
       color: var(--textBody);
-      margin-bottom: 1.2em;
+      margin-bottom: 1.1em;
     }
     .actions {
       display: flex;
       flex-wrap: wrap;
-      gap: 12px 20px;
+      gap: 10px 22px;
       align-items: center;
-      margin-top: 28px;
+      margin-top: 30px;
       font-size: 0.95rem;
     }
-    .actions a { font-weight: 600; }
+    .actions a { font-weight: 600; text-decoration: none; }
+    .actions a:hover { color: var(--text); text-decoration: underline; }
     .muted { color: var(--muted); }
     .placeholder {
       color: var(--muted);
@@ -136,31 +151,38 @@
     }
 
     /* Sections */
-    section { padding-block: 56px; }
-    section + section { border-top: 1px solid var(--border); }
+    section { padding-block: 84px; }
+    section h2 {
+      display: inline-block;
+      border-left: 2px solid var(--accent);
+      padding-left: 14px;
+      margin-bottom: 18px;
+      color: var(--text);
+    }
 
-    .prose h2 { margin-bottom: 14px; }
     .prose p, .prose ul, .prose ol { margin-top: 0; margin-bottom: 1em; }
     .prose ul, .prose ol { padding-left: 1.4em; }
-    .prose li { margin-bottom: 0.4em; }
+    .prose li { margin-bottom: 0.5em; }
 
     /* Stack list */
     .stack-list {
       list-style: none;
       padding: 0;
+      margin: 0;
     }
     .stack-list li {
-      padding: 8px 0;
+      padding: 10px 0;
+      color: var(--textBody);
       border-bottom: 1px solid var(--border);
     }
     .stack-list li:last-child { border-bottom: none; }
-    .stack-list strong { color: var(--text); }
+    .stack-list strong { color: var(--text); font-weight: 600; }
 
     /* Table */
     table {
       width: 100%;
       border-collapse: collapse;
-      margin: 18px 0 1em;
+      margin: 8px 0 1em;
       font-size: 0.92rem;
     }
     th, td {
@@ -171,16 +193,15 @@
     }
     th {
       font-weight: 600;
-      color: var(--text);
-      background: rgba(246, 241, 231, 0.05);
+      color: var(--accent);
+      background: none;
     }
     td { color: var(--textBody); }
     tr:last-child th, tr:last-child td { border-bottom: none; }
 
     /* Footer */
     .site-footer {
-      padding-block: 40px 56px;
-      border-top: 1px solid var(--border);
+      padding-block: 60px 80px;
       text-align: center;
       font-size: 0.9rem;
       color: var(--muted);
@@ -188,11 +209,12 @@
     .site-footer p { margin: 0; color: var(--muted); }
 
     @media (max-width: 600px) {
-      .nav { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .nav { align-items: center; }
+      .nav-group { gap: 14px; }
       .nav-links { gap: 14px; }
-      .hero { padding-block: 48px 40px; }
-      section { padding-block: 44px; }
-      th, td { padding: 10px 8px; }
+      .hero { padding-block: 80px 56px; }
+      section { padding-block: 64px; }
+      th, td { padding-right: 8px; }
     }
   </style>
 </head>
@@ -200,21 +222,21 @@
   <header class="site-header">
     <div class="container nav">
       <a class="wordmark" href="#">Àṣà</a>
-      <nav>
-        <ul class="nav-links">
-          <li><a href="#overview">Overview</a></li>
-          <li><a href="#pipeline">Pipeline</a></li>
-          <li><a href="#stack">Stack</a></li>
-          <li><a href="#downloads">Downloads</a></li>
-          <li><a href="#report">Report</a></li>
-          <li><a href="#license">License</a></li>
-          <li class="github">
-            <a href="https://github.com/odunlemi/asa" target="_blank" rel="noopener" aria-label="GitHub">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.38.6.11.82-.26.82-.58v-2.03c-3.34.72-4.04-1.61-4.04-1.61-.55-1.39-1.33-1.76-1.33-1.76-1.09-.74.08-.73.08-.73 1.2.09 1.84 1.24 1.84 1.24 1.07 1.83 2.8 1.3 3.49 1 .1-.78.42-1.3.76-1.6-2.67-.3-5.47-1.34-5.47-5.97 0-1.32.47-2.4 1.24-3.24-.13-.3-.54-1.52.12-3.17 0 0 1-.32 3.3 1.24a11.5 11.5 0 0 1 6 0c2.28-1.56 3.29-1.24 3.29-1.24.66 1.65.24 2.87.12 3.17.77.84 1.24 1.92 1.24 3.24 0 4.64-2.8 5.66-5.48 5.96.43.37.82 1.1.82 2.22v3.29c0 .32.22.7.82.58C20.56 21.8 24 17.3 24 12c0-6.63-5.37-12-12-12z"/></svg>
-            </a>
-          </li>
-        </ul>
-      </nav>
+      <div class="nav-group">
+        <nav>
+          <ul class="nav-links">
+            <li><a href="#overview">Overview</a></li>
+            <li><a href="#pipeline">Pipeline</a></li>
+            <li><a href="#stack">Stack</a></li>
+            <li><a href="#downloads">Downloads</a></li>
+            <li><a href="#report">Report</a></li>
+            <li><a href="#license">License</a></li>
+          </ul>
+        </nav>
+        <a class="github-icon" href="https://github.com/odunlemi/asa" target="_blank" rel="noopener" aria-label="GitHub">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.38.6.11.82-.26.82-.58v-2.03c-3.34.72-4.04-1.61-4.04-1.61-.55-1.39-1.33-1.76-1.33-1.76-1.09-.74.08-.73.08-.73 1.2.09 1.84 1.24 1.84 1.24 1.07 1.83 2.8 1.3 3.49 1 .1-.78.42-1.3.76-1.6-2.67-.3-5.47-1.34-5.47-5.97 0-1.32.47-2.4 1.24-3.24-.13-.3-.54-1.52.12-3.17 0 0 1-.32 3.3 1.24a11.5 11.5 0 0 1 6 0c2.28-1.56 3.29-1.24 3.29-1.24.66 1.65.24 2.87.12 3.17.77.84 1.24 1.92 1.24 3.24 0 4.64-2.8 5.66-5.48 5.96.43.37.82 1.1.82 2.22v3.29c0 .32.22.7.82.58C20.56 21.8 24 17.3 24 12c0-6.63-5.37-12-12-12z"/></svg>
+        </a>
+      </div>
     </div>
   </header>
 
